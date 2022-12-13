@@ -1,0 +1,73 @@
+name: 'ZyAction: Glob Match'
+
+description: A GitHub Action to match `glob` patterns.
+author: Florian Bernd
+
+branding:
+  icon: filter
+  color: black
+
+inputs:
+  pattern:
+    description: >
+      The glob patterns to use. Supports multiline strings.
+    type: string
+    required: false
+    default: ''
+  values:
+    description: >
+      The list of values to match (delimited by newlines).
+
+      Uses the live filesystem if not set.
+
+      Uses the provided `data-source` input, if set to `-`.
+    type: string
+    required: false
+    default: ''
+  data-source:
+    description: >
+      The data-source to use when `values` is set to `-`.
+    type: string
+    required: false
+    default: ''
+  shell-output:
+    description: >
+      Enable this option to delimit matching elements with spaces instead of newlines and
+      enable shell quoting.
+    type: boolean
+    required: false
+    default: false
+  return-promise:
+    description: >
+      Enable this option to write a "promise"-like shell (bash) command to the `promise` output.
+
+      The "promise" must be `eval`ed to return the results. It can be passed to other actions 
+      that do support a `data-source` input.
+
+      The `matches` output is not populated when enabling this option.
+    type: boolean
+    required: false
+    default: false
+
+outputs:
+  matches:
+    description: >
+      The list of all matching elements, if the `return-promise` option is not enabled.
+    value: ${{ steps.glob.outputs.matches }}
+  promise:
+    description: >
+      The "promise"-like shell (bash) command, if the `return-promise` option is enabled.
+    value: ${{ steps.glob.outputs.promise }}
+
+runs:
+  using: composite
+  steps:
+    - name: Glob Match
+      id: glob
+      shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_SEPARATOR: ${{ inputs.separator }}
+        INPUT_EXCLUDE_IGNORED: ${{ inputs.exclude-ignored != 'false' && 'true' || 'false' }}
+      run: |
+        bash "$GITHUB_ACTION_PATH/entrypoint.sh"
