@@ -1,0 +1,150 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    env:
+      EXPECTED: "'test/a.txt' 'test/c.txt'"
+      EXPECTED_FS: ${{ matrix.platform == 'windows-latest' && '''test\a.txt'' ''test\c.txt''' || '''test/a.txt'' ''test/c.txt''' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
+
+      - name: 'TEST: File System Input'
+        id: glob-fs
+        uses: ./.
+        with:
+          pattern: 'test/[ac].txt'
+          quote: true
+          sort: true
+      - name: FAILED
+        if: steps.glob-fs.outputs.matches != env.EXPECTED_FS
+        run: |
+          echo "Matches:"
+          echo "${{ steps.glob-fs.outputs.matches }}"
+          exit 1
+
+      - name: 'TEST: Value Input'
+        id: glob-values
+        uses: ./.
+        with:
+          pattern: 'test/[ac].txt'
+          quote: true
+          sort: true
+          values: |-
+            test/a.txt
+            test/b.txt
+            test/c.txt
+      - name: FAILED
+        if: steps.glob-values.outputs.matches != env.EXPECTED
+        run: |
+          echo "Matches:"
+          echo "${{ steps.glob-values.outputs.matches }}"
+          exit 1
+
+      - name: 'TEST: Pipe Input'
+        id: glob-pipe
+        uses: ./.
+        with:
+          pattern: 'test/[ac].txt'
+          quote: true
+          sort: true
+          pipe: >-
+            ls -1d test/*
+      - name: FAILED
+        if: steps.glob-pipe.outputs.matches != env.EXPECTED
+        run: |
+          echo "Matches:"
+          echo "${{ steps.glob-pipe.outputs.matches }}"
+          exit 1
+
+      - name: 'TEST: File System Input (Pipe)'
+        id: glob-fs-pipe
+        uses: ./.
+        with:
+          pattern: 'test/[ac].txt'
+          quote: true
+          sort: true
+          return-pipe: true
+      - name: Evaluate
+        id: glob-fs-pipe-result
+        shell: bash
+        run: |
+          result=$(${{ steps.glob-fs-pipe.outputs.pipe }})
+          echo "matches<<EOF" >> $GITHUB_OUTPUT
+          echo "$result" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: FAILED
+        if: steps.glob-fs-pipe-result.outputs.matches != env.EXPECTED_FS
+        run: |
+          echo "Matches:"
+          echo "${{ steps.glob-fs-pipe-result.outputs.matches }}"
+          exit 1
+
+      - name: 'TEST: Value Input (Pipe)'
+        id: glob-values-pipe
+        uses: ./.
+        with:
+          pattern: 'test/[ac].txt'
+          quote: true
+          sort: true
+          return-pipe: true
+          values: |-
+            test/a.txt
+            test/b.txt
+            test/c.txt
+      - name: Evaluate
+        id: glob-values-pipe-result
+        shell: bash
+        run: |
+          result=$(${{ steps.glob-values-pipe.outputs.pipe }})
+          echo "matches<<EOF" >> $GITHUB_OUTPUT
+          echo "$result" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: FAILED
+        if: steps.glob-values-pipe-result.outputs.matches != env.EXPECTED
+        run: |
+          echo "Matches:"
+          echo "${{ steps.glob-values-pipe-result.outputs.matches }}"
+          exit 1
+
+      - name: 'TEST: Pipe Input (Pipe)'
+        id: glob-pipe-pipe
+        uses: ./.
+        with:
+          pattern: 'test/[ac].txt'
+          quote: true
+          sort: true
+          return-pipe: true
+          pipe: >-
+            ls -1d test/*
+      - name: Evaluate
+        id: glob-pipe-pipe-result
+        shell: bash
+        run: |
+          result=$(${{ steps.glob-pipe-pipe.outputs.pipe }})
+          echo "matches<<EOF" >> $GITHUB_OUTPUT
+          echo "$result" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: FAILED
+        if: steps.glob-pipe-pipe-result.outputs.matches != env.EXPECTED
+        run: |
+          echo "Matches:"
+          echo "${{ steps.glob-pipe-pipe-result.outputs.matches }}"
+          exit 1

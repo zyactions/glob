@@ -1,0 +1,104 @@
+name: 'ZyAction: Glob Match'
+
+description: A GitHub Action for matching `glob` patterns.
+author: Florian Bernd
+
+branding:
+  icon: filter
+  color: black
+
+inputs:
+  pattern:
+    description: >
+      One or more file, path, or placeholder patterns that describe which items to match.
+
+      Supports multiline strings.
+    type: string
+    required: true
+    default: ''
+  values:
+    description: >
+      An optional list of values to be matched (separated by line breaks).
+
+      The action operates on the life file system if neither the `values`-, nor the `pipe`-input
+      is set.
+
+      This input must be used mutually exclusive with the `pipe` input.
+    type: string
+    required: false
+    default: ''
+  pipe:
+    description: >
+      An optional pipe input from which the input values are to be read.
+
+      This must be set to a valid shell command line (bash) that can be used for piping. The
+      command must output to `stdout` and separate the individual values by line breaks.
+
+      WARNING:
+      The command passed to this input will be evaluated and should not come from untrusted
+      sources.
+
+      The action operates on the life file system if neither the `values`-, nor the `pipe`-input
+      is set.
+
+      This input must be used mutually exclusive with the `values` input.
+    type: string
+    required: false
+    default: ''
+  quote:
+    description: >
+      Enable this option to separate matching elements with spaces instead of line breaks and to
+      enable enable shell quoting.
+    type: boolean
+    required: false
+    default: false
+  sort:
+    description: >
+      Enable this option to sort the output elements. Not recommended for large result sets.
+    type: boolean
+    required: false
+    default: false
+  return-pipe:
+    description: >
+      Enable this option to return a shell (bash) command in the `pipe` output that can be
+      used for piping.
+
+      The output command must be `eval`ed to return the results. It can also be passed to 
+      other actions that support a `pipe` input.
+
+      The `matches` output will not be populated if this option is enabled.
+    type: boolean
+    required: false
+    default: false
+
+outputs:
+  matches:
+    description: >
+      A list of all matching elements, delimited by newlines or spaces (if the `quote` option is
+      used).
+
+      This output is only available if the `return-pipe` option is not enabled.
+    value: ${{ steps.glob.outputs.matches }}
+  pipe:
+    description: >
+      A shell (bash) command which can be used for piping.
+      
+      This output is only available if the `return-pipe` option is enabled.
+    value: ${{ steps.glob.outputs.pipe }}
+
+runs:
+  using: composite
+  steps:
+    - name: Glob Match
+      id: glob
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        INPUT_PATTERN: ${{ inputs.pattern }}
+        INPUT_VALUES: ${{ inputs.values }}
+        INPUT_PIPE: ${{ inputs.pipe }}
+        INPUT_QUOTE: ${{ inputs.quote != 'false' && 'true' || 'false' }}
+        INPUT_SORT: ${{ inputs.sort != 'false' && 'true' || 'false' }}
+        INPUT_RETURN_PIPE: ${{ inputs.return-pipe != 'false' && 'true' || 'false' }}
+      run: |
+        bash "$GITHUB_ACTION_PATH/entrypoint.sh"
