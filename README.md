@@ -21,13 +21,13 @@ A GitHub Action for matching `glob` patterns.
 
 ## Usage
 
-### Match Files on the Life File System
+### Match Files in the Life File System
 
 ```yaml
 steps:
   - name: Glob Match
     id: glob
-    uses: zyactions/glob@master
+    uses: zyactions/glob@v1
     with:
       pattern: |
         **/[ac].txt
@@ -44,7 +44,7 @@ steps:
 steps:
   - name: Glob Match
     id: glob
-    uses: zyactions/glob@master
+    uses: zyactions/glob@v1
     with:
       pattern: '**/[ac].txt'
       values: |-
@@ -65,7 +65,7 @@ The input values must be separated by line breaks.
 steps:
   - name: Glob Match
     id: glob
-    uses: zyactions/glob@master
+    uses: zyactions/glob@v1
     with:
       pattern: '**/[ac].txt'
       pipe: 'git diff --name-only'
@@ -85,7 +85,7 @@ The input values returned by the pipe command must be separated by line breaks.
 steps:
   - name: Glob Match
     id: glob
-    uses: zyactions/glob@master
+    uses: zyactions/glob@v1
     with:
       pattern: '**/[ac].txt'
       return-pipe: true
