@@ -45,19 +45,6 @@ inputs:
     type: string
     required: false
     default: ''
-  quote:
-    description: >
-      Enable this option to separate matching elements with spaces instead of line breaks and to
-      enable enable shell quoting.
-    type: boolean
-    required: false
-    default: false
-  sort:
-    description: >
-      Enable this option to sort the output elements. Not recommended for large result sets.
-    type: boolean
-    required: false
-    default: false
   return-pipe:
     description: >
       Enable this option to return a shell (bash) command in the `pipe` output that can be
@@ -97,8 +84,6 @@ runs:
         INPUT_PATTERN: ${{ inputs.pattern }}
         INPUT_VALUES: ${{ inputs.values }}
         INPUT_PIPE: ${{ inputs.pipe }}
-        INPUT_QUOTE: ${{ inputs.quote != 'false' && 'true' || 'false' }}
-        INPUT_SORT: ${{ inputs.sort != 'false' && 'true' || 'false' }}
         INPUT_RETURN_PIPE: ${{ inputs.return-pipe != 'false' && 'true' || 'false' }}
       run: |
-        bash "$GITHUB_ACTION_PATH/entrypoint.sh"
+        "${{ github.action_path }}/entrypoint.sh"

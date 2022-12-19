@@ -1,0 +1,52 @@
+name: Test Wrapper
+
+inputs:
+  pattern:
+    type: string
+    required: true
+  values:
+    type: string
+    required: false
+    default: ''
+  pipe:
+    type: string
+    required: false
+    default: ''
+  return-pipe:
+    type: boolean
+    required: false
+    default: false
+
+outputs:
+  matches:
+    value: ${{ steps.result.outputs.result }}
+  pipe:
+    value: ${{ steps.result-pipe.outputs.result }}
+
+runs:
+  using: composite
+  steps:
+    - name: Glob
+      id: glob
+      uses: ./.
+      with:
+        pattern: ${{ inputs.pattern }}
+        values: ${{ inputs.values }}
+        pipe: ${{ inputs.pipe }}
+        return-pipe: ${{ inputs.return-pipe }}
+
+    - name: Quote and Sort
+      id: result
+      if: inputs.return-pipe == 'false'
+      shell: bash
+      run: |
+        result=$(echo '${{ steps.glob.outputs.matches }}' | LC_ALL=C sort -u | '${{ github.action_path }}/shellquote.sh' ' ')
+        echo "result=$result" >> $GITHUB_OUTPUT
+
+    - name: Quote and Sort (Pipe)
+      id: result-pipe
+      if: inputs.return-pipe != 'false'
+      shell: bash
+      run: |
+        result="${{ steps.glob.outputs.pipe }} | LC_ALL=C sort -u | '${{ github.action_path }}/shellquote.sh' ' '"
+        echo "result=$result" >> $GITHUB_OUTPUT
