@@ -30,7 +30,7 @@ steps:
 
   - name: Glob Match
     id: glob
-    uses: zyactions/glob@v1
+    uses: zyactions/glob@v2
     with:
       pattern: |
         **/[ac].txt
@@ -47,7 +47,7 @@ steps:
 steps:
   - name: Glob Match
     id: glob
-    uses: zyactions/glob@v1
+    uses: zyactions/glob@v2
     with:
       pattern: '**/[ac].txt'
       values: |-
@@ -71,7 +71,7 @@ steps:
 
   - name: Glob Match
     id: glob
-    uses: zyactions/glob@v1
+    uses: zyactions/glob@v2
     with:
       pattern: '**/[ac].txt'
       pipe: 'git diff --name-only'
@@ -94,7 +94,7 @@ steps:
 
   - name: Glob Match
     id: glob
-    uses: zyactions/glob@v1
+    uses: zyactions/glob@v2
     with:
       pattern: '**/[ac].txt'
       return-pipe: true
