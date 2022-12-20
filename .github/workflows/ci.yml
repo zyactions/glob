@@ -24,15 +24,13 @@ jobs:
       EXPECTED_FS: ${{ matrix.platform == 'windows-latest' && '''test\a.txt'' ''test\c.txt''' || '''test/a.txt'' ''test/c.txt''' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3.1.0
+        uses: actions/checkout@v3
 
       - name: 'TEST: File System Input'
         id: glob-fs
-        uses: ./.
+        uses: ./.github/actions/wrapper
         with:
           pattern: 'test/[ac].txt'
-          quote: true
-          sort: true
       - name: FAILED
         if: steps.glob-fs.outputs.matches != env.EXPECTED_FS
         run: |
@@ -42,11 +40,9 @@ jobs:
 
       - name: 'TEST: Value Input'
         id: glob-values
-        uses: ./.
+        uses: ./.github/actions/wrapper
         with:
           pattern: 'test/[ac].txt'
-          quote: true
-          sort: true
           values: |-
             test/a.txt
             test/b.txt
@@ -60,11 +56,9 @@ jobs:
 
       - name: 'TEST: Pipe Input'
         id: glob-pipe
-        uses: ./.
+        uses: ./.github/actions/wrapper
         with:
           pattern: 'test/[ac].txt'
-          quote: true
-          sort: true
           pipe: >-
             ls -1d test/*
       - name: FAILED
@@ -76,11 +70,9 @@ jobs:
 
       - name: 'TEST: File System Input (Pipe)'
         id: glob-fs-pipe
-        uses: ./.
+        uses: ./.github/actions/wrapper
         with:
           pattern: 'test/[ac].txt'
-          quote: true
-          sort: true
           return-pipe: true
       - name: Evaluate
         id: glob-fs-pipe-result
@@ -99,11 +91,9 @@ jobs:
 
       - name: 'TEST: Value Input (Pipe)'
         id: glob-values-pipe
-        uses: ./.
+        uses: ./.github/actions/wrapper
         with:
           pattern: 'test/[ac].txt'
-          quote: true
-          sort: true
           return-pipe: true
           values: |-
             test/a.txt
@@ -126,11 +116,9 @@ jobs:
 
       - name: 'TEST: Pipe Input (Pipe)'
         id: glob-pipe-pipe
-        uses: ./.
+        uses: ./.github/actions/wrapper
         with:
           pattern: 'test/[ac].txt'
-          quote: true
-          sort: true
           return-pipe: true
           pipe: >-
             ls -1d test/*

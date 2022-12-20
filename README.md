@@ -25,6 +25,9 @@ A GitHub Action for matching `glob` patterns.
 
 ```yaml
 steps:
+  - name: Checkout
+    uses: actions/checkout@v3
+
   - name: Glob Match
     id: glob
     uses: zyactions/glob@v1
@@ -63,6 +66,9 @@ The input values must be separated by line breaks.
 
 ```yaml
 steps:
+  - name: Checkout
+    uses: actions/checkout@v3
+
   - name: Glob Match
     id: glob
     uses: zyactions/glob@v1
@@ -83,6 +89,9 @@ The input values returned by the pipe command must be separated by line breaks.
 
 ```yaml
 steps:
+  - name: Checkout
+    uses: actions/checkout@v3
+
   - name: Glob Match
     id: glob
     uses: zyactions/glob@v1
@@ -116,9 +125,7 @@ An optional list of values to be matched (separated by line breaks).
 
 The action operates on the life file system if neither the `values`-, nor the `pipe`-input is set.
 
-> **Note**
->
-> This input must be used mutually exclusive with the `pipe` input.
+> **Note**: This input must be used mutually exclusive with the `pipe` input.
 
 ### `pipe`
 
@@ -132,23 +139,7 @@ The action operates on the life file system if neither the `values`-, nor the `p
 >
 > The command passed to this input will be evaluated and should not come from untrusted sources.
 
-> **Note**
->
-> This input must be used mutually exclusive with the `values` input.
-
-### `quote`
-
-Enable this option to separate matching elements with spaces instead of line breaks and to enable enable shell quoting.
-
-Example output for `test/a.txt`, `test/b.txt` and `test/'.txt`:
-
-```bash
-'test/a.txt' 'test/b.txt' 'test/'\''.txt'
-```
-
-### `sort`
-
-Enable this option to sort the output elements. Not recommended for large result sets.
+> **Note**: This input must be used mutually exclusive with the `values` input.
 
 ### `return-pipe`
 
@@ -156,9 +147,7 @@ Enable this option to return a shell (bash) command in the `pipe` output that ca
 
 The output command must be `eval`ed to return the results. It can also be passed to other actions that support a `pipe` input.
 
-> **Note**
->
-> The `matches` output will not be populated if this option is enabled.
+> **Note**: The `matches` output will not be populated if this option is enabled.
 
 ## Outputs
 
@@ -166,17 +155,13 @@ The output command must be `eval`ed to return the results. It can also be passed
 
 A list of all matching elements, delimited by newlines or spaces (if the `quote` option is used).
 
-> **Note**
->
-> This output is only available if the `return-pipe` option is not enabled.
+> **Note**: This output is only available if the `return-pipe` option is not enabled.
 
 ### `pipe`
 
 A shell (bash) command which can be used for piping.
       
-> **Note**
->
-> This output is only available if the `return-pipe` option is enabled.
+> **Note**: This output is only available if the `return-pipe` option is enabled.
 
 ## Dependencies
 
