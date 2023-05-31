@@ -1,6 +1,9 @@
 name: Test Wrapper
 
 inputs:
+  working-directory:
+    type: string
+    required: false
   pattern:
     type: string
     required: true
@@ -30,6 +33,7 @@ runs:
       id: glob
       uses: ./.
       with:
+        working-directory: ${{ inputs.working-directory }}
         pattern: ${{ inputs.pattern }}
         values: ${{ inputs.values }}
         pipe: ${{ inputs.pipe }}

@@ -11,7 +11,7 @@ sys.path.append('.')
 from wcmatch import glob
 
 parser = argparse.ArgumentParser(description='Reads from `stdin` and returns each line that matches the given glob pattern.')
-parser.add_argument('pattern', nargs='+', 
+parser.add_argument('pattern', nargs='+',
                     help='The glob pattern to use. Can be passed multiple times.')
 args = parser.parse_args()
 
@@ -31,6 +31,6 @@ for line in sys.stdin:
         glob.NEGATEALL |    # Assume '**' if no inlcusion pattern was passed
         glob.EXTGLOB   |    # Enable extended pattern list matching
         glob.GLOBSTAR  |    # Enable '**' pattern to match zero or more directories
-        glob.BRACE          # Enable brace expansion 
+        glob.BRACE          # Enable brace expansion
     ):
         print(filename)

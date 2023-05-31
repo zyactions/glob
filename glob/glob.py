@@ -9,7 +9,7 @@ sys.path.append('.')
 from wcmatch import glob
 
 parser = argparse.ArgumentParser(description='Returns each file that matches the given glob pattern.')
-parser.add_argument('pattern', nargs='+', 
+parser.add_argument('pattern', nargs='+',
                     help='The glob pattern to use. Can be passed multiple times.')
 args = parser.parse_args()
 
@@ -25,7 +25,7 @@ matches = glob.iglob(patterns=patterns, limit=100, flags=
     glob.GLOBSTAR  |    # Enable '**' pattern to match zero or more directories
     glob.GLOBTILDE |    # Substitute '~' with the current user path
     glob.FOLLOW    |    # Allow '**' to match and traverse symlink directories
-    glob.BRACE          # Enable brace expansion 
+    glob.BRACE          # Enable brace expansion
 )
 
 for filename in matches:

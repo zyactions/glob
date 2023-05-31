@@ -8,6 +8,21 @@ branding:
   color: black
 
 inputs:
+  working-directory:
+    description: >
+      The working-directory for the action.
+
+      Defaults to the repository root directory (`github.workspace`).
+
+      When working on the file system, patterns and matches are considered relative to the
+      specified working directory. If the `pipe` input is used, the pipe command will be executed
+      in the current `working-directory`. This input has no effect if the `values` input is set.
+
+      The working directory will as well be included in the `pipe` output, if `return-pipe` is
+      enabled.
+    type: string
+    required: false
+    default: ${{ github.workspace }}
   pattern:
     description: >
       One or more file, path, or placeholder patterns that describe which items to match.
@@ -20,7 +35,7 @@ inputs:
     description: >
       An optional list of values to be matched (separated by line breaks).
 
-      The action operates on the life file system if neither the `values`-, nor the `pipe`-input
+      The action operates on the file system if neither the `values`-, nor the `pipe`-input
       is set.
 
       This input must be used mutually exclusive with the `pipe` input.
@@ -38,7 +53,11 @@ inputs:
       The command passed to this input will be evaluated and should not come from untrusted
       sources.
 
-      The action operates on the life file system if neither the `values`-, nor the `pipe`-input
+      The pipe command is executed in the current `working-directory` by default. If the pipe
+      command is to be executed in another working directory, make sure to properly insert a
+      directory change command.
+
+      The action operates on the file system if neither the `values`-, nor the `pipe`-input
       is set.
 
       This input must be used mutually exclusive with the `values` input.
@@ -50,7 +69,7 @@ inputs:
       Enable this option to return a shell (bash) command in the `pipe` output that can be
       used for piping.
 
-      The output command must be `eval`ed to return the results. It can also be passed to 
+      The output command must be `eval`ed to return the results. It can also be passed to
       other actions that support a `pipe` input.
 
       The `matches` output will not be populated if this option is enabled.
@@ -69,7 +88,7 @@ outputs:
   pipe:
     description: >
       A shell (bash) command which can be used for piping.
-      
+
       This output is only available if the `return-pipe` option is enabled.
     value: ${{ steps.glob.outputs.pipe }}
 
@@ -79,7 +98,7 @@ runs:
     - name: Glob Match
       id: glob
       shell: bash
-      working-directory: ${{ github.workspace }}
+      working-directory: ${{ inputs.working-directory }}
       env:
         INPUT_PATTERN: ${{ inputs.pattern }}
         INPUT_VALUES: ${{ inputs.values }}

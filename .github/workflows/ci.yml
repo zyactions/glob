@@ -12,127 +12,165 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  test:
-    name: Test
+  test-fs:
+    name: Test (in = fs, os = ${{ matrix.platform }}, sub = ${{ matrix.subdirectory }}, pipe = ${{ matrix.return-pipe }})
     runs-on: ${{ matrix.platform }}
     strategy:
       fail-fast: false
       matrix:
-        platform: [ubuntu-latest, macos-latest, windows-latest]
+        platform    : [ubuntu-latest, macos-latest, windows-latest]
+        subdirectory: [false, true]
+        return-pipe : [false, true]
     env:
-      EXPECTED: "'test/a.txt' 'test/c.txt'"
-      EXPECTED_FS: ${{ matrix.platform == 'windows-latest' && '''test\a.txt'' ''test\c.txt''' || '''test/a.txt'' ''test/c.txt''' }}
+      PATTERN: ${{ matrix.subdirectory && '[ac].txt' || 'test/[ac].txt' }}
+      WORKDIR: ${{ matrix.subdirectory && 'test' || '' }}
+      EXPECTED: >-
+        ${{
+          matrix.subdirectory && '''a.txt'' ''c.txt''' ||
+          (
+            matrix.platform == 'windows-latest' && '''test\a.txt'' ''test\c.txt''' || '''test/a.txt'' ''test/c.txt'''
+          )
+        }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: 'TEST: File System Input'
-        id: glob-fs
+      - name: TEST
+        id: glob
         uses: ./.github/actions/wrapper
         with:
-          pattern: 'test/[ac].txt'
+          working-directory: ${{ env.WORKDIR }}
+          pattern: ${{ env.PATTERN }}
+          return-pipe: ${{ matrix.return-pipe }}
+
       - name: FAILED
-        if: steps.glob-fs.outputs.matches != env.EXPECTED_FS
+        if: matrix.return-pipe == false && steps.glob.outputs.matches != env.EXPECTED
         run: |
           echo "Matches:"
-          echo "${{ steps.glob-fs.outputs.matches }}"
+          echo "${{ steps.glob.outputs.matches }}"
           exit 1
 
-      - name: 'TEST: Value Input'
-        id: glob-values
+      - name: Evaluate
+        if: matrix.return-pipe
+        id: glob-result
+        shell: bash
+        run: |
+          result=$(${{ steps.glob.outputs.pipe }})
+          echo "matches<<EOF" >> $GITHUB_OUTPUT
+          echo "$result" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: FAILED
+        if: matrix.return-pipe && steps.glob-result.outputs.matches != env.EXPECTED
+        run: |
+          echo "Matches:"
+          echo "${{ steps.glob-result.outputs.matches }}"
+          exit 1
+
+  test-values:
+    name: Test (in = values, os = ${{ matrix.platform }}, pipe = ${{ matrix.return-pipe }})
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform    : [ubuntu-latest, macos-latest, windows-latest]
+        return-pipe : [false, true]
+    env:
+      PATTERN: 'test/[ac].txt'
+      EXPECTED: "'test/a.txt' 'test/c.txt'"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: TEST
+        id: glob
         uses: ./.github/actions/wrapper
         with:
-          pattern: 'test/[ac].txt'
+          pattern: ${{ env.PATTERN }}
           values: |-
             test/a.txt
             test/b.txt
             test/c.txt
+          return-pipe: ${{ matrix.return-pipe }}
       - name: FAILED
-        if: steps.glob-values.outputs.matches != env.EXPECTED
+        if: matrix.return-pipe == false && steps.glob.outputs.matches != env.EXPECTED
         run: |
           echo "Matches:"
-          echo "${{ steps.glob-values.outputs.matches }}"
+          echo "${{ steps.glob.outputs.matches }}"
           exit 1
 
-      - name: 'TEST: Pipe Input'
-        id: glob-pipe
+      - name: Evaluate
+        if: matrix.return-pipe
+        id: glob-result
+        shell: bash
+        run: |
+          result=$(${{ steps.glob.outputs.pipe }})
+          echo "matches<<EOF" >> $GITHUB_OUTPUT
+          echo "$result" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: FAILED
+        if: matrix.return-pipe && steps.glob-result.outputs.matches != env.EXPECTED
+        run: |
+          echo "Matches:"
+          echo "${{ steps.glob-result.outputs.matches }}"
+          exit 1
+
+  test-pipe:
+    name: Test (in = pipe, os = ${{ matrix.platform }}, sub = ${{ matrix.subdirectory }}, pipe = ${{ matrix.return-pipe }})
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform    : [ubuntu-latest, macos-latest, windows-latest]
+        subdirectory: [false, true]
+        return-pipe : [false, true]
+    env:
+      PATTERN: 'test/[acdf].txt'
+      WORKDIR: ${{ matrix.subdirectory && 'test/sub' || '' }}
+      EXPECTED: ${{ matrix.subdirectory && '''test/d.txt'' ''test/f.txt''' || '''test/a.txt'' ''test/c.txt''' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: TEST
+        id: glob
         uses: ./.github/actions/wrapper
         with:
-          pattern: 'test/[ac].txt'
+          working-directory: ${{ env.WORKDIR }}
+          pattern: ${{ env.PATTERN }}
           pipe: >-
             ls -1d test/*
+          return-pipe: ${{ matrix.return-pipe }}
       - name: FAILED
-        if: steps.glob-pipe.outputs.matches != env.EXPECTED
+        if: matrix.return-pipe == false && steps.glob.outputs.matches != env.EXPECTED
         run: |
           echo "Matches:"
-          echo "${{ steps.glob-pipe.outputs.matches }}"
+          echo "${{ steps.glob.outputs.matches }}"
           exit 1
 
-      - name: 'TEST: File System Input (Pipe)'
-        id: glob-fs-pipe
-        uses: ./.github/actions/wrapper
-        with:
-          pattern: 'test/[ac].txt'
-          return-pipe: true
       - name: Evaluate
-        id: glob-fs-pipe-result
+        if: matrix.return-pipe
+        id: glob-result
         shell: bash
         run: |
-          result=$(${{ steps.glob-fs-pipe.outputs.pipe }})
+          result=$(${{ steps.glob.outputs.pipe }})
           echo "matches<<EOF" >> $GITHUB_OUTPUT
           echo "$result" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+
       - name: FAILED
-        if: steps.glob-fs-pipe-result.outputs.matches != env.EXPECTED_FS
+        if: matrix.return-pipe && steps.glob-result.outputs.matches != env.EXPECTED
         run: |
           echo "Matches:"
-          echo "${{ steps.glob-fs-pipe-result.outputs.matches }}"
+          echo "${{ steps.glob-result.outputs.matches }}"
           exit 1
 
-      - name: 'TEST: Value Input (Pipe)'
-        id: glob-values-pipe
-        uses: ./.github/actions/wrapper
-        with:
-          pattern: 'test/[ac].txt'
-          return-pipe: true
-          values: |-
-            test/a.txt
-            test/b.txt
-            test/c.txt
-      - name: Evaluate
-        id: glob-values-pipe-result
-        shell: bash
-        run: |
-          result=$(${{ steps.glob-values-pipe.outputs.pipe }})
-          echo "matches<<EOF" >> $GITHUB_OUTPUT
-          echo "$result" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-      - name: FAILED
-        if: steps.glob-values-pipe-result.outputs.matches != env.EXPECTED
-        run: |
-          echo "Matches:"
-          echo "${{ steps.glob-values-pipe-result.outputs.matches }}"
-          exit 1
-
-      - name: 'TEST: Pipe Input (Pipe)'
-        id: glob-pipe-pipe
-        uses: ./.github/actions/wrapper
-        with:
-          pattern: 'test/[ac].txt'
-          return-pipe: true
-          pipe: >-
-            ls -1d test/*
-      - name: Evaluate
-        id: glob-pipe-pipe-result
-        shell: bash
-        run: |
-          result=$(${{ steps.glob-pipe-pipe.outputs.pipe }})
-          echo "matches<<EOF" >> $GITHUB_OUTPUT
-          echo "$result" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-      - name: FAILED
-        if: steps.glob-pipe-pipe-result.outputs.matches != env.EXPECTED
-        run: |
-          echo "Matches:"
-          echo "${{ steps.glob-pipe-pipe-result.outputs.matches }}"
-          exit 1
+  results:
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    name: Test Results
+    needs: [test-fs, test-values, test-pipe]
+    steps:
+      - run: exit 1
+        if: ${{ contains(needs.*.result, 'failure') ||  contains(needs.*.result, 'cancelled') }}

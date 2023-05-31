@@ -11,7 +11,7 @@ A GitHub Action for matching `glob` patterns.
 ## Features
 
 - Matches filenames and pathes using [glob patterns][glob-cheat-sheet]
-  - ... in the live file system
+  - ... in the file system
   - ... from a user-supplied input
   - ... from an input pipe
 - Fast execution
@@ -21,7 +21,7 @@ A GitHub Action for matching `glob` patterns.
 
 ## Usage
 
-### Match Files in the Life File System
+### Match Files in the File System
 
 ```yaml
 steps:
@@ -109,6 +109,16 @@ The `return-pipe` option can also be combined with the `pipe` input to insert a 
 
 ## Inputs
 
+### `working-directory`
+
+The working-directory for the action.
+
+Defaults to the repository root directory (`github.workspace`).
+
+When working on the file system, patterns and matches are considered relative to the specified working directory. If the `pipe` input is used, the pipe command will be executed in the current `working-directory`. This input has no effect if the `values` input is set.
+
+The working directory will as well be included in the `pipe` output, if `return-pipe` is enabled.
+
 ### `pattern`
 
 One or more file, path, or placeholder patterns that describe which items to match.
@@ -123,7 +133,7 @@ Check out the [glob pattern cheat sheet][glob-cheat-sheet] for reference. Multi 
 
 An optional list of values to be matched (separated by line breaks).
 
-The action operates on the life file system if neither the `values`-, nor the `pipe`-input is set.
+The action operates on the file system if neither the `values`-, nor the `pipe`-input is set.
 
 > **Note**: This input must be used mutually exclusive with the `pipe` input.
 
@@ -133,11 +143,20 @@ An optional pipe input from which the input values are to be read.
 
 This must be set to a valid shell command line (bash) that can be used for piping. The command must output to `stdout` and separate the individual values by line breaks.
 
-The action operates on the life file system if neither the `values`-, nor the `pipe`-input is set.
+The action operates on the file system if neither the `values`-, nor the `pipe`-input is set.
 
 > **Warning**
 >
 > The command passed to this input will be evaluated and should not come from untrusted sources.
+
+> **Note**:
+>
+> The pipe command is executed in the current `working-directory` by default. If the pipe command is to be executed in another working directory, make sure to properly insert a directory change command.
+>
+> Example pipe command:
+> ```bash
+> (cd '/my/absolute/workdir' && ls -1)
+> ```
 
 > **Note**: This input must be used mutually exclusive with the `values` input.
 
