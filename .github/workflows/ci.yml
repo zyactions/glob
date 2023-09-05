@@ -33,7 +33,7 @@ jobs:
         }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: TEST
         id: glob
@@ -80,7 +80,7 @@ jobs:
       EXPECTED: "'test/a.txt' 'test/c.txt'"
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: TEST
         id: glob
@@ -131,7 +131,7 @@ jobs:
       EXPECTED: ${{ matrix.subdirectory && '''test/d.txt'' ''test/f.txt''' || '''test/a.txt'' ''test/c.txt''' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: TEST
         id: glob
